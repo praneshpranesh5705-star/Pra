@@ -2,12 +2,89 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
-<meta http-equiv="refresh" content="0; url=agrisense_esp32_live_only.html">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>AgriSense — ESP32 Farm Monitor</title>
+<style>
+:root{--bg:#07110c;--panel:#0e1d15;--line:#20372a;--text:#f1f7f2;--muted:#9bb0a1;--green:#55d98a;--yellow:#f2c94c;--red:#ff6b6b}
+*{box-sizing:border-box}body{margin:0;background:linear-gradient(135deg,#07110c,#10251a);color:var(--text);font-family:Inter,system-ui,Arial,sans-serif;min-height:100vh}
+.wrap{max-width:1050px;margin:auto;padding:28px 18px 50px}
+header{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:24px;flex-wrap:wrap}
+h1{margin:0;font-size:30px}h1 span{color:var(--green)}
+.sub{color:var(--muted);margin:7px 0 0}
+.status{border:1px solid var(--line);background:#0b1912;padding:10px 14px;border-radius:999px;color:var(--muted);font-size:14px}
+.status i{display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--red);margin-right:8px}.status.live i{background:var(--green)}
+.notice{border:1px solid var(--line);background:rgba(14,29,21,.85);border-radius:16px;padding:22px;margin-bottom:18px}
+.notice h2{margin:0 0 7px;font-size:19px}.notice p{margin:0;color:var(--muted);line-height:1.55}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}.card{background:rgba(14,29,21,.92);border:1px solid var(--line);border-radius:16px;padding:20px;min-height:150px}
+.label{color:var(--muted);font-size:14px}.value{font-size:42px;font-weight:750;margin:16px 0 8px}.unit{font-size:18px;color:var(--muted);font-weight:500}.state{font-size:14px;color:var(--muted)}
+.panel{margin-top:18px;background:rgba(14,29,21,.92);border:1px solid var(--line);border-radius:16px;padding:20px}
+.panel h2{margin:0 0 12px;font-size:18px}.rows{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}.row{padding:14px;border:1px solid var(--line);border-radius:12px;color:var(--muted)}.row b{display:block;color:var(--text);margin-bottom:5px}
+footer{text-align:center;color:var(--muted);font-size:12px;margin-top:24px}
+@media(max-width:700px){.grid{grid-template-columns:1fr}.rows{grid-template-columns:1fr}h1{font-size:25px}.value{font-size:36px}}
+</style>
 </head>
 <body>
-<p>Opening AgriSense ESP32 Farm Monitor…</p>
-<p><a href="agrisense_esp32_live_only.html">Open AgriSense</a></p>
+<div class="wrap">
+<header>
+<div><h1>Agri<span>Sense</span></h1><p class="sub">ESP32 Soil & Temperature Monitoring</p></div>
+<div class="status" id="status"><i></i><span>Waiting for ESP32</span></div>
+</header>
+
+<div class="notice" id="notice">
+<h2>Waiting for ESP32 data</h2>
+<p>No sensor readings are displayed until the ESP32 sends real data. Connect the ESP32 and configure the backend endpoint at <b>/api/readings</b>.</p>
+</div>
+
+<div class="grid">
+<div class="card"><div class="label">Soil Moisture</div><div class="value" id="moisture">—<span class="unit"> %</span></div><div class="state" id="moistureState">Waiting for sensor</div></div>
+<div class="card"><div class="label">Temperature</div><div class="value" id="temperature">—<span class="unit"> °C</span></div><div class="state" id="temperatureState">Waiting for sensor</div></div>
+<div class="card"><div class="label">Humidity</div><div class="value" id="humidity">—<span class="unit"> %</span></div><div class="state" id="humidityState">Waiting for sensor</div></div>
+</div>
+
+<div class="panel">
+<h2>Device</h2>
+<div class="rows">
+<div class="row"><b>ESP32 Status</b><span id="deviceStatus">Not connected</span></div>
+<div class="row"><b>Last Reading</b><span id="updated">No reading yet</span></div>
+<div class="row"><b>Data Source</b><span>/api/readings</span></div>
+<div class="row"><b>Refresh</b><span>Every 3 seconds</span></div>
+</div>
+</div>
+<footer>AgriSense • Live sensor values only • ESP32 Agriculture Monitor</footer>
+</div>
+
+<script>
+const endpoint="/api/readings";
+const $=id=>document.getElementById(id);
+function setStatus(live){
+ const s=$("status"); s.className="status"+(live?" live":"");
+ s.querySelector("span").textContent=live?"ESP32 Connected":"Waiting for ESP32";
+}
+function render(d){
+ const m=Number(d.moisture),t=Number(d.temperature),h=d.humidity==null?null:Number(d.humidity);
+ $("moisture").innerHTML=Number.isFinite(m)?m.toFixed(1)+'<span class="unit"> %</span>':'—<span class="unit"> %</span>';
+ $("temperature").innerHTML=Number.isFinite(t)?t.toFixed(1)+'<span class="unit"> °C</span>':'—<span class="unit"> °C</span>';
+ $("humidity").innerHTML=h!==null&&Number.isFinite(h)?h.toFixed(1)+'<span class="unit"> %</span>':'—<span class="unit"> %</span>';
+ $("moistureState").textContent=Number.isFinite(m)?(m<40?"Dry — needs water":m>75?"Wet":"Optimal"):"Waiting for sensor";
+ $("temperatureState").textContent=Number.isFinite(t)?(t>35?"High temperature":t<15?"Cool":"Normal"):"Waiting for sensor";
+ $("humidityState").textContent=h!==null&&Number.isFinite(h)?(h>80?"High humidity":h<35?"Low humidity":"Normal"):"Waiting for sensor";
+ $("deviceStatus").textContent="Connected";
+ $("updated").textContent=d.timestamp?new Date(d.timestamp).toLocaleString():"Just now";
+ $("notice").style.display="none"; setStatus(true);
+}
+async function poll(){
+ try{
+  const r=await fetch(endpoint,{cache:"no-store"});
+  if(!r.ok) throw new Error("No backend data");
+  const d=await r.json();
+  if(!d.connected) throw new Error("ESP32 not connected");
+  render(d);
+ }catch(e){
+  setStatus(false);
+  $("deviceStatus").textContent="Not connected";
+ }
+}
+poll();setInterval(poll,3000);
+</script>
 </body>
 </html>
