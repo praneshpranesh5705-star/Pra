@@ -2,89 +2,61 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AgriSense — ESP32 Farm Monitor</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#050812">
+<title>NovaForge AI — Knowledge to Innovation</title>
 <style>
-:root{--bg:#07110c;--panel:#0e1d15;--line:#20372a;--text:#f1f7f2;--muted:#9bb0a1;--green:#55d98a;--yellow:#f2c94c;--red:#ff6b6b}
-*{box-sizing:border-box}body{margin:0;background:linear-gradient(135deg,#07110c,#10251a);color:var(--text);font-family:Inter,system-ui,Arial,sans-serif;min-height:100vh}
-.wrap{max-width:1050px;margin:auto;padding:28px 18px 50px}
-header{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:24px;flex-wrap:wrap}
-h1{margin:0;font-size:30px}h1 span{color:var(--green)}
-.sub{color:var(--muted);margin:7px 0 0}
-.status{border:1px solid var(--line);background:#0b1912;padding:10px 14px;border-radius:999px;color:var(--muted);font-size:14px}
-.status i{display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--red);margin-right:8px}.status.live i{background:var(--green)}
-.notice{border:1px solid var(--line);background:rgba(14,29,21,.85);border-radius:16px;padding:22px;margin-bottom:18px}
-.notice h2{margin:0 0 7px;font-size:19px}.notice p{margin:0;color:var(--muted);line-height:1.55}
-.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}.card{background:rgba(14,29,21,.92);border:1px solid var(--line);border-radius:16px;padding:20px;min-height:150px}
-.label{color:var(--muted);font-size:14px}.value{font-size:42px;font-weight:750;margin:16px 0 8px}.unit{font-size:18px;color:var(--muted);font-weight:500}.state{font-size:14px;color:var(--muted)}
-.panel{margin-top:18px;background:rgba(14,29,21,.92);border:1px solid var(--line);border-radius:16px;padding:20px}
-.panel h2{margin:0 0 12px;font-size:18px}.rows{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}.row{padding:14px;border:1px solid var(--line);border-radius:12px;color:var(--muted)}.row b{display:block;color:var(--text);margin-bottom:5px}
-footer{text-align:center;color:var(--muted);font-size:12px;margin-top:24px}
-@media(max-width:700px){.grid{grid-template-columns:1fr}.rows{grid-template-columns:1fr}h1{font-size:25px}.value{font-size:36px}}
+:root{--bg:#050812;--panel:rgba(13,19,35,.78);--line:#26324f;--text:#eef5ff;--muted:#8e9bb5;--cyan:#4de7ff;--violet:#9b7bff;--green:#54e39a;--red:#ff687d}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;color:var(--text);font-family:Inter,ui-sans-serif,system-ui,Arial;background:radial-gradient(circle at 15% 10%,#142451 0,transparent 30%),radial-gradient(circle at 85% 20%,#24144a 0,transparent 28%),var(--bg);min-height:100vh}body:before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.22;background-image:linear-gradient(rgba(255,255,255,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.04) 1px,transparent 1px);background-size:45px 45px}.wrap{max-width:1180px;margin:auto;padding:22px 18px 70px;position:relative}nav{display:flex;justify-content:space-between;align-items:center;padding:8px 0 30px}.brand{font-weight:900;letter-spacing:.8px;font-size:20px}.brand span{color:var(--cyan)}.navpill{border:1px solid var(--line);padding:9px 14px;border-radius:999px;color:var(--muted);font-size:13px}.hero{text-align:center;padding:55px 10px 40px}.eyebrow{display:inline-flex;border:1px solid #30446f;background:#0c1630;border-radius:999px;padding:8px 13px;color:var(--cyan);font-size:12px;font-weight:700;letter-spacing:1px}.hero h1{font-size:clamp(42px,7vw,78px);line-height:.98;margin:20px 0 16px;letter-spacing:-3px}.gradient{background:linear-gradient(90deg,var(--cyan),#fff,var(--violet));-webkit-background-clip:text;color:transparent}.hero p{max-width:720px;margin:auto;color:var(--muted);font-size:17px;line-height:1.7}.features{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:28px 0}.feature,.workspace,.result{background:var(--panel);border:1px solid var(--line);backdrop-filter:blur(16px);border-radius:20px}.feature{padding:19px}.icon{font-size:25px}.feature h3{margin:10px 0 6px}.feature p{margin:0;color:var(--muted);font-size:13px;line-height:1.5}.workspace{padding:22px;margin-top:16px}.workspaceTop{display:flex;justify-content:space-between;gap:14px;align-items:center;margin-bottom:18px}.workspace h2{margin:0;font-size:20px}.badge{font-size:12px;color:var(--green);border:1px solid #245e48;background:#0b2119;padding:7px 10px;border-radius:999px}.drop{border:1px dashed #42618c;border-radius:18px;padding:42px 20px;text-align:center;background:linear-gradient(180deg,rgba(40,62,103,.15),rgba(8,12,24,.3));transition:.2s}.drop.drag{border-color:var(--cyan);box-shadow:0 0 35px rgba(77,231,255,.12)}.drop strong{display:block;font-size:19px;margin:10px 0 6px}.drop p{color:var(--muted);font-size:13px;margin:0 0 18px}.btn{border:0;border-radius:11px;padding:11px 16px;font-weight:800;cursor:pointer;background:linear-gradient(90deg,var(--cyan),#8abfff);color:#031018}.btn.secondary{background:#121b30;color:var(--text);border:1px solid var(--line)}input[type=file]{display:none}.file{display:none;margin-top:15px;padding:13px;border:1px solid var(--line);border-radius:12px;text-align:left}.file.show{display:flex;justify-content:space-between;gap:10px;align-items:center}.fileName{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:15px}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:15px;margin-top:15px}.result{padding:20px;min-height:200px}.result h3{margin:0 0 13px}.resultBody{color:var(--muted);line-height:1.65;font-size:14px}.chips{display:flex;flex-wrap:wrap;gap:7px}.chip{border:1px solid var(--line);background:#0d1528;border-radius:999px;padding:6px 9px;font-size:12px;color:#b9c8e5}.idea{border-left:3px solid var(--cyan);padding:10px 12px;background:#0a1223;border-radius:8px;margin:8px 0}.codebox{white-space:pre-wrap;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;background:#060b16;border:1px solid var(--line);border-radius:10px;padding:13px;max-height:240px;overflow:auto;font-size:12px;color:#bfefff}.status{color:var(--muted);font-size:12px;margin-top:10px}.history{margin-top:15px}.historyItem{padding:12px 0;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;color:var(--muted);font-size:13px}.hidden{display:none!important}@media(max-width:760px){.features,.grid2{grid-template-columns:1fr}.hero h1{letter-spacing:-2px}.workspaceTop{align-items:flex-start;flex-direction:column}}
 </style>
 </head>
 <body>
 <div class="wrap">
-<header>
-<div><h1>Agri<span>Sense</span></h1><p class="sub">ESP32 Soil & Temperature Monitoring</p></div>
-<div class="status" id="status"><i></i><span>Waiting for ESP32</span></div>
-</header>
+<nav><div class="brand">NOVA<span>FORGE</span> AI</div><div class="navpill">⚡ Knowledge → Innovation Engine</div></nav>
+<section class="hero">
+<div class="eyebrow">NEXT-GEN LEARNING & PROJECT LAB</div>
+<h1>Upload. Understand.<br><span class="gradient">Invent Something New.</span></h1>
+<p>Upload books, PDFs, notes, images or source code. NovaForge turns your material into explanations, technical insights, project ideas and innovation concepts.</p>
+</section>
 
-<div class="notice" id="notice">
-<h2>Waiting for ESP32 data</h2>
-<p>No sensor readings are displayed until the ESP32 sends real data. Connect the ESP32 and configure the backend endpoint at <b>/api/readings</b>.</p>
-</div>
-
-<div class="grid">
-<div class="card"><div class="label">Soil Moisture</div><div class="value" id="moisture">—<span class="unit"> %</span></div><div class="state" id="moistureState">Waiting for sensor</div></div>
-<div class="card"><div class="label">Temperature</div><div class="value" id="temperature">—<span class="unit"> °C</span></div><div class="state" id="temperatureState">Waiting for sensor</div></div>
-<div class="card"><div class="label">Humidity</div><div class="value" id="humidity">—<span class="unit"> %</span></div><div class="state" id="humidityState">Waiting for sensor</div></div>
+<div class="features">
+<div class="feature"><div class="icon">📚</div><h3>Book Intelligence</h3><p>Turn long documents into key concepts, summaries, formulas and study questions.</p></div>
+<div class="feature"><div class="icon">💻</div><h3>Code Intelligence</h3><p>Inspect source files for structure, patterns, obvious issues and improvement opportunities.</p></div>
+<div class="feature"><div class="icon">💡</div><h3>Innovation Engine</h3><p>Generate practical project concepts from the knowledge contained in your upload.</p></div>
 </div>
 
-<div class="panel">
-<h2>Device</h2>
-<div class="rows">
-<div class="row"><b>ESP32 Status</b><span id="deviceStatus">Not connected</span></div>
-<div class="row"><b>Last Reading</b><span id="updated">No reading yet</span></div>
-<div class="row"><b>Data Source</b><span>/api/readings</span></div>
-<div class="row"><b>Refresh</b><span>Every 3 seconds</span></div>
+<section class="workspace">
+<div class="workspaceTop"><h2>Innovation Workspace</h2><div class="badge">● LOCAL ANALYSIS READY</div></div>
+<div class="drop" id="drop">
+<div style="font-size:42px">⬡</div><strong>Drop your book, PDF, code or text here</strong><p>Supported: PDF, TXT, MD, HTML, JS, TS, PY, C, CPP, JAVA, JSON and more</p>
+<label class="btn" for="fileInput">Choose File</label><input id="fileInput" type="file" accept=".pdf,.txt,.md,.html,.js,.ts,.jsx,.tsx,.py,.c,.cpp,.java,.json,.css,.ino,.csv">
+<div class="file" id="file"><span class="fileName" id="fileName"></span><button class="btn secondary" id="clear" type="button">Remove</button></div>
 </div>
-</div>
-<footer>AgriSense • Live sensor values only • ESP32 Agriculture Monitor</footer>
-</div>
+<div class="actions"><button class="btn" id="analyze" type="button">✨ Analyze Upload</button><button class="btn secondary" id="ideaBtn" type="button">🚀 Generate Innovation</button><button class="btn secondary" id="reset" type="button">Reset Workspace</button></div>
+<div class="status" id="status">No file selected. Analysis runs in your browser for supported text/code files.</div>
 
+<div class="grid2">
+<div class="result"><h3>🧠 Intelligence Report</h3><div class="resultBody" id="report">Upload a file and select <b>Analyze Upload</b>.</div></div>
+<div class="result"><h3>💡 Innovation Lab</h3><div class="resultBody" id="ideas">Your generated project concepts will appear here.</div></div>
+</div>
+<div class="result history"><h3>📊 File Snapshot</h3><div class="resultBody" id="snapshot">Waiting for upload...</div></div>
+</section>
+<footer style="text-align:center;color:var(--muted);font-size:12px;margin-top:25px">NovaForge AI • Built for books, code, learning and high-tech innovation</footer>
+</div>
 <script>
-const endpoint="/api/readings";
-const $=id=>document.getElementById(id);
-function setStatus(live){
- const s=$("status"); s.className="status"+(live?" live":"");
- s.querySelector("span").textContent=live?"ESP32 Connected":"Waiting for ESP32";
-}
-function render(d){
- const m=Number(d.moisture),t=Number(d.temperature),h=d.humidity==null?null:Number(d.humidity);
- $("moisture").innerHTML=Number.isFinite(m)?m.toFixed(1)+'<span class="unit"> %</span>':'—<span class="unit"> %</span>';
- $("temperature").innerHTML=Number.isFinite(t)?t.toFixed(1)+'<span class="unit"> °C</span>':'—<span class="unit"> °C</span>';
- $("humidity").innerHTML=h!==null&&Number.isFinite(h)?h.toFixed(1)+'<span class="unit"> %</span>':'—<span class="unit"> %</span>';
- $("moistureState").textContent=Number.isFinite(m)?(m<40?"Dry — needs water":m>75?"Wet":"Optimal"):"Waiting for sensor";
- $("temperatureState").textContent=Number.isFinite(t)?(t>35?"High temperature":t<15?"Cool":"Normal"):"Waiting for sensor";
- $("humidityState").textContent=h!==null&&Number.isFinite(h)?(h>80?"High humidity":h<35?"Low humidity":"Normal"):"Waiting for sensor";
- $("deviceStatus").textContent="Connected";
- $("updated").textContent=d.timestamp?new Date(d.timestamp).toLocaleString():"Just now";
- $("notice").style.display="none"; setStatus(true);
-}
-async function poll(){
- try{
-  const r=await fetch(endpoint,{cache:"no-store"});
-  if(!r.ok) throw new Error("No backend data");
-  const d=await r.json();
-  if(!d.connected) throw new Error("ESP32 not connected");
-  render(d);
- }catch(e){
-  setStatus(false);
-  $("deviceStatus").textContent="Not connected";
- }
-}
-poll();setInterval(poll,3000);
+const $=id=>document.getElementById(id);let selected=null;let textContent="";
+const drop=$("drop");
+$("fileInput").addEventListener("change",e=>selectFile(e.target.files[0]));
+["dragenter","dragover"].forEach(x=>drop.addEventListener(x,e=>{e.preventDefault();drop.classList.add("drag")}));
+["dragleave","drop"].forEach(x=>drop.addEventListener(x,e=>{e.preventDefault();drop.classList.remove("drag")}));
+drop.addEventListener("drop",e=>selectFile(e.dataTransfer.files[0]));
+$("clear").onclick=()=>{selected=null;textContent="";$("file").classList.remove("show");$("fileInput").value="";$("status").textContent="File removed.";};
+async function selectFile(file){if(!file)return;selected=file;$("file").classList.add("show");$("fileName").textContent=file.name+" • "+formatBytes(file.size);$("status").textContent="Reading "+file.name+"…";textContent="";if(file.type.startsWith("text/")||/\.(txt|md|html?|js|ts|jsx|tsx|py|c|cpp|java|json|css|ino|csv)$/i.test(file.name)){try{textContent=await file.text();$("status").textContent="Ready to analyze "+file.name;}catch(e){$("status").textContent="Could not read this file."}}else{$("status").textContent="File selected. PDF/image AI extraction requires an AI/PDF service connection."}renderSnapshot();}
+function formatBytes(n){if(n<1024)return n+" B";if(n<1048576)return (n/1024).toFixed(1)+" KB";return (n/1048576).toFixed(1)+" MB";}
+function renderSnapshot(){if(!selected){$("snapshot").textContent="Waiting for upload...";return}let ext=selected.name.split(".").pop().toUpperCase();$("snapshot").innerHTML='<div class="chips"><span class="chip">FILE: '+escapeHtml(selected.name)+'</span><span class="chip">TYPE: '+ext+'</span><span class="chip">SIZE: '+formatBytes(selected.size)+'</span><span class="chip">TEXT: '+(textContent?textContent.length.toLocaleString()+" chars":"needs extractor")+'</span></div>';}
+function analyze(){if(!selected){$("status").textContent="Please choose a file first.";return}let t=textContent,words=t?t.trim().split(/\s+/).filter(Boolean):[];let isCode=/\.(js|ts|jsx|tsx|py|c|cpp|java|json|css|ino)$/i.test(selected.name);let headings=t?(t.match(/^#{1,6}\s+.+$/gm)||[]).slice(0,8):[];let formulas=t?(t.match(/\b[A-Za-z]+\s*=\s*[^\n]{1,70}/g)||[]).slice(0,5):[];let tech=(t.match(/\b(ESP32|Arduino|Python|JavaScript|React|Next\.js|AI|IoT|API|sensor|machine learning|database|robot|agriculture|irrigation|Arduino|GPS|camera)\b/gi)||[]);let unique=[...new Set(tech.map(x=>x.toLowerCase()))].slice(0,10);$("report").innerHTML=t?'<p><b>Content type:</b> '+(isCode?"Source code":"Knowledge/document")+'</p><p><b>Estimated words:</b> '+words.length.toLocaleString()+'</p>'+(headings.length?'<p><b>Detected sections:</b></p><div class="chips">'+headings.map(h=>'<span class="chip">'+escapeHtml(h.replace(/^#+\s*/,""))+'</span>').join("")+'</div>':"")+(unique.length?'<p><b>Technology signals:</b></p><div class="chips">'+unique.map(x=>'<span class="chip">'+escapeHtml(x)+'</span>').join("")+'</div>':"")+(formulas.length?'<p><b>Detected technical expressions:</b></p><div class="codebox">'+escapeHtml(formulas.join("\n"))+'</div>':""):'<p>This file is selected, but browser-only extraction is not available for this format yet. Connect an AI/PDF extraction API to unlock full semantic analysis.</p>';$("status").textContent="Analysis complete.";}
+function generateIdea(){if(!selected){$("status").textContent="Upload something first.";return}let context=(textContent||selected.name).slice(0,700);let tech=/ESP32|Arduino|IoT|sensor|agriculture|robot|camera|GPS/i.test(context)?"IoT + AI":"AI + automation";let title=tech==="IoT + AI"?"AI-Powered Smart Field Innovation":"AI-Powered Knowledge-to-Prototype Lab";$("ideas").innerHTML='<div class="idea"><b>'+title+'</b><br>Combine the uploaded knowledge with '+tech+' to create a working prototype.</div><div class="idea"><b>Core workflow</b><br>Input → AI analysis → decision engine → prototype/action → dashboard → measurable result.</div><div class="idea"><b>Next step</b><br>Use the extracted concepts to define sensors/components, software modules, data flow, cost and a demo plan.</div><div class="chips"><span class="chip">Prototype</span><span class="chip">AI</span><span class="chip">Automation</span><span class="chip">Scalable</span></div>';$("status").textContent="Innovation concept generated.";}
+function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
+$("analyze").onclick=analyze;$("ideaBtn").onclick=generateIdea;$("reset").onclick=()=>location.reload();
 </script>
-</body>
-</html>
+</body></html>
